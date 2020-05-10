@@ -3,11 +3,20 @@ const questionContainerElement = document.getElementById
 ('question-container')
 const questionElement = document.getElementById('question')
 const answerButtonsElement = document.getElementById('answer-buttons')
+const timerElement = document.getElementById("timer")
+const resultElement = document.getElementById("result")
+const scoreElement = document.getElementById("score")
+const initialsElement = document.getElementById("initials")
+const saveElement = document.getElementById("save")
 
-let shuffledQuestions, currentQuestionsIndex
+
+
+
+
+let shuffledQuestions, currentQuestionIndex
 
 startButton.addEventListener("click", startGame)
-
+saveElement.addEventListener("click",saveScore)
 
 function startGame(){
     console.log("stared")
@@ -15,49 +24,79 @@ function startGame(){
     shuffledQuestions = questions.sort(()=> Math.random()- .5)
     currentQuestionIndex = 0;
     questionContainerElement.classList.remove("hide")
+    setTime();
     setNextQuestion()
 }
 
 function setNextQuestion(){
- showQuestion(shuffledQuestions[currentQuestionsIndex])
+ showQuestion(shuffledQuestions[currentQuestionIndex])
  }
 
  function showQuestion(question){
-     questionElement.innerText = question.question
-     question.answer.forEach(answer => {
+     questionElement.innerText = question.title
+     answerButtonsElement.innerHTML = ""
+     question.choices.forEach(choice => {
          const button = document.createElement("button")
-         button.innerText = answer.text
+         button.innerText = choice
          button.classList.add("btn")
-         if (answer.correct) {
-             button.dataset.correct = answer.correct
-         }
          button.addEventListener("click", selectAnswer)
          answerButtonsElement.appendChild(button)
      })
  }
+       
 
- function resetState() {
-     nextButton.classList.add("hide")
-     while (answerButtonsElement){
-         answerButtonsElement.removeChild
-         (answerButtonsElement.firstChild)
-     }
- }
+
 
 
 function selectAnswer(e){
     const selectedButton = e.target
-    const correct = selectedButton.dataset.correct
+    const userAnswer = selectedButton.innerText
+    if(userAnswer === shuffledQuestions[currentQuestionIndex].answer){
+        alert("correct")
+    }else{
+        secondsLeft -=15
+        alert("incorrect")
+    }
+    currentQuestionIndex ++ 
+    if(currentQuestionIndex < shuffledQuestions.length){
+        showQuestion(shuffledQuestions[currentQuestionIndex])
+    }else{
+gameEnd();
+    }
 }
 
-console.log(questions)
+var secondsLeft = 60;
+var timerInterval ;
+function setTime() {
+   timerInterval = setInterval(function() {
+    secondsLeft--;
+    timerElement.textContent = secondsLeft ;
 
-const questions = [{
-    question: "who won the 2019 MLB World Series?",
-    answer: [
-        {text: "washington nationals", correct:true}
-        ]
-    
-    
+    if(secondsLeft === 0) {
+      gameEnd();
 
-}]
+      
+    }
+
+  }, 1000);
+}
+
+function gameEnd(){ 
+    clearInterval(timerInterval);
+    questionContainerElement.classList.add("hide");
+    
+    resultElement.classList.remove("hide") 
+    scoreElement.textContent = secondsLeft
+}
+
+function saveScore(){
+    var initials = initialsElement.value;
+    var highScores = JSON.parse(localStorage.getItem("highScores")) || [];
+    var newScore = {
+        score : secondsLeft,
+        initials : initials
+    }
+    highScores.push(newScore)
+    localStorage.setItem("highScores",JSON.stringify(highScores));
+    location.href = "highScores.html"
+}
